@@ -12,7 +12,7 @@ const InputSection = ({ input, setInput, onAnalyze, onClear, isLoading }) => {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
                     <Search className="w-5 h-5 text-blue-600" />
-                    Input Ingredients
+                    Input Ingredient(s)
                 </h2>
                 {input && (
                     <button

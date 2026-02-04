@@ -52,14 +52,14 @@ function App() {
             </div>
             <div>
               <h1 className="text-xl font-bold text-slate-900 tracking-tight">IngreSense</h1>
-              <p className="text-xs text-slate-500 font-medium tracking-wide">AI COSMETIC COMPANION</p>
+              <p className="text-xs text-slate-500 font-medium tracking-wide">COSMETIC COMPANION</p>
             </div>
           </div>
-          {modelStatus && (
+          {/* {modelStatus && (
             <span className={`text-xs px-2 py-1 rounded-md border ${modelStatus === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
               Model: {modelStatus}
             </span>
-          )}
+          )} */}
         </div>
       </header>
 
@@ -68,7 +68,7 @@ function App() {
         <div className="text-center max-w-2xl mx-auto mb-10">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">Understand What's Inside</h2>
           <p className="text-slate-600 text-lg">
-            Paste your cosmetic ingredient list below to instantly analyze for Halal, Vegan, Allergen, and Eco-friendly status.
+            Enter your cosmetic ingredient list below to instantly analyze for Halal, Vegan, Allergen, and Eco-friendly status.
           </p>
         </div>
 
