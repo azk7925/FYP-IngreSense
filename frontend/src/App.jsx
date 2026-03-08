@@ -3,8 +3,9 @@ import axios from 'axios';
 import InputSection from './components/InputSection';
 import ResultsSection from './components/ResultsSection';
 import ExplanationSection from './components/ExplanationSection';
+import XAISection from './components/XAISection';
 import LoadingSpinner from './components/LoadingSpinner';
-import { Microscope, Info } from 'lucide-react';
+import { Microscope, Info, Sparkles } from 'lucide-react';
 
 function App() {
   const [input, setInput] = useState('');
@@ -13,12 +14,16 @@ function App() {
   const [error, setError] = useState(null);
   const [modelStatus, setModelStatus] = useState(null);
 
+  const [xaiData, setXaiData] = useState(null);
+  const [isExplaining, setIsExplaining] = useState(false);
+
   const handleAnalyze = async () => {
     if (!input.trim()) return;
 
     setIsLoading(true);
     setError(null);
     setData(null);
+    setXaiData(null); // Reset XAI on new prediction
 
     try {
       const response = await axios.post('http://127.0.0.1:8000/classify', {
@@ -35,9 +40,29 @@ function App() {
     }
   };
 
+  const handleDetailedAnalysis = async () => {
+    if (!input.trim()) return;
+
+    setIsExplaining(true);
+    setError(null);
+
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/explain', {
+        ingredients: input
+      });
+      setXaiData(response.data);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to fetch detailed analysis. Please check the backend.");
+    } finally {
+      setIsExplaining(false);
+    }
+  };
+
   const handleClear = () => {
     setInput('');
     setData(null);
+    setXaiData(null);
     setError(null);
   };
 
@@ -55,11 +80,11 @@ function App() {
               <p className="text-xs text-slate-500 font-medium tracking-wide">COSMETIC COMPANION</p>
             </div>
           </div>
-          {/* {modelStatus && (
+          {modelStatus && (
             <span className={`text-xs px-2 py-1 rounded-md border ${modelStatus === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
               Model: {modelStatus}
             </span>
-          )} */}
+          )}
         </div>
       </header>
 
@@ -96,7 +121,33 @@ function App() {
         {data && (
           <div className="space-y-8">
             <ResultsSection results={data.results} />
-            <ExplanationSection explanations={data.explanations} />
+            {/* <ExplanationSection explanations={data.explanations} /> */}
+            
+            {/* Detailed Analysis Button */}
+            {!xaiData && (
+              <div className="flex justify-center mt-6">
+                <button
+                  onClick={handleDetailedAnalysis}
+                  disabled={isExplaining}
+                  className="flex items-center gap-2 px-6 py-3 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-xl font-bold transition-all border border-indigo-200 shadow-sm disabled:opacity-50"
+                >
+                  {isExplaining ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                      Analyzing deeply...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Get Detailed Analysis
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* XAI Section */}
+            {xaiData && <XAISection data={xaiData} />}
           </div>
         )}
       </main>
