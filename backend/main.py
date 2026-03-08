@@ -34,11 +34,6 @@ class IngredientRequest(BaseModel):
     ingredients: str
 
 # Response models
-class IngredientExplanation(BaseModel):
-    name: str
-    status: str  # e.g. "Safe", "Not Vegan", "Unknown"
-    details: str
-
 class ClassificationResult(BaseModel):
     label: str
     probability: float
@@ -46,7 +41,6 @@ class ClassificationResult(BaseModel):
 
 class AnalysisResponse(BaseModel):
     results: List[ClassificationResult]
-    explanations: List[IngredientExplanation]
     model_status: str  # "Active" or "Mock Mode"
 
 @app.on_event("startup")
@@ -98,9 +92,6 @@ async def classify_ingredients(request: IngredientRequest):
     cleaned_text = clean_ingredient_text(text)
     ing_list = extract_ingredients(cleaned_text)
     
-    # Explanations from KG (Determininstic)
-    explanations = []
-    
     # Track aggregate scores for simple mock logic if needed
     halal_score = 0
     vegan_score = 0
@@ -111,22 +102,6 @@ async def classify_ingredients(request: IngredientRequest):
     for ing in ing_list:
         lookup = kg.lookup(ing)
         props = lookup['properties']
-        
-        # Determine status string
-        status_parts = []
-        if props.get('halal') < 0.5: status_parts.append("Not Halal")
-        if props.get('vegan') < 0.5: status_parts.append("Not Vegan")
-        if props.get('allergen') > 0.5: status_parts.append("Allergen")
-        
-        status = ", ".join(status_parts) if status_parts else "Safe"
-        if not lookup['found']:
-            status = "Unknown"
-        
-        explanations.append(IngredientExplanation(
-            name=lookup.get('canonical_name', ing),
-            status=status,
-            details=props.get('reasoning', "No data available")
-        ))
         
         if lookup['found']:
             halal_score += props.get('halal', 0.5)
@@ -178,19 +153,18 @@ async def classify_ingredients(request: IngredientRequest):
         except Exception as e:
             print(f"Inference error: {e}")
             # Fallback to mock if runtime error
-            return _get_mock_results(halal_score/count, vegan_score/count, allergen_score/count, eco_score/count, explanations)
+            return _get_mock_results(halal_score/count, vegan_score/count, allergen_score/count, eco_score/count)
 
     else:
         # Mock Mode
-        return _get_mock_results(halal_score/count, vegan_score/count, allergen_score/count, eco_score/count, explanations)
+        return _get_mock_results(halal_score/count, vegan_score/count, allergen_score/count, eco_score/count)
 
     return AnalysisResponse(
         results=results,
-        explanations=explanations,
         model_status="Active" if model else "Mock Mode"
     )
 
-def _get_mock_results(h, v, a, e, explanations):
+def _get_mock_results(h, v, a, e):
     # Simple heuristic for mock mode
     return AnalysisResponse(
         results=[
@@ -199,7 +173,6 @@ def _get_mock_results(h, v, a, e, explanations):
             ClassificationResult(label="Contains Allergens", probability=a, is_present=a>0.4),
             ClassificationResult(label="Eco-Friendly", probability=e, is_present=e>0.6),
         ],
-        explanations=explanations,
         model_status="Mock Mode"
     )
 
@@ -303,19 +276,20 @@ async def get_detailed_explanation(request: IngredientRequest):
     # Format for API
     api_response = {
         'predictions': predictions,
-        'top_contributors': {},
+        'all_contributors': {},
         'kg_evidence': [],
         'ambiguous_ingredients': ambiguous,
         'confidence_level': 'medium'
     }
 
-    # Top contributors per label
+    # Contributors per label broken down by positive/negative
     label_mapping = {'Halal': 'halal', 'Vegan': 'vegan',
                      'Allergen-Safe': 'allergen', 'Eco-Friendly': 'eco'}
 
-    max_contributors = 5
     for label, key in label_mapping.items():
-        contributors = []
+        positive_contributors = []
+        negative_contributors = []
+        
         for item in evidence:
             if item['found']:
                 score = item['scores'].get(key, 0.5)
@@ -323,15 +297,26 @@ async def get_detailed_explanation(request: IngredientRequest):
                 if key == 'allergen':
                     score = 1.0 - score
                     
-                contributors.append({
+                contributor_data = {
                     'ingredient': item['ingredient'],
                     'score': round(score, 3),
                     'impact': 'positive' if score > 0.6 else 'negative' if score < 0.4 else 'neutral'
-                })
+                }
+                
+                if score > 0.6:
+                    positive_contributors.append(contributor_data)
+                else:
+                    # Anything that is neutral (0.4-0.6) or strictly negative (<0.4) is preventing 100% confidence.
+                    negative_contributors.append(contributor_data)
 
         # Sort by absolute distance from 0.5 (most impactful)
-        contributors.sort(key=lambda x: abs(x['score'] - 0.5), reverse=True)
-        api_response['top_contributors'][label] = contributors[:max_contributors]
+        positive_contributors.sort(key=lambda x: abs(x['score'] - 0.5), reverse=True)
+        negative_contributors.sort(key=lambda x: abs(x['score'] - 0.5), reverse=True)
+        
+        api_response['all_contributors'][label] = {
+            'supporting': positive_contributors,
+            'preventing': negative_contributors
+        }
 
     # KG evidence
     for item in evidence:

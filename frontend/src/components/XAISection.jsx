@@ -42,30 +42,42 @@ const XAISection = ({ data }) => {
             Top Contributors
           </button>
           <button
+            onClick={() => setActiveTab('all_contributors')}
+            className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === 'all_contributors'
+              ? 'bg-white text-indigo-700 shadow-sm border border-indigo-100'
+              : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
+              }`}
+          >
+            All Factors
+          </button>
+          <button
             onClick={() => setActiveTab('evidence')}
             className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${activeTab === 'evidence'
               ? 'bg-white text-indigo-700 shadow-sm border border-indigo-100'
               : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'
               }`}
           >
-            Knowledge Graph Evidence
+            Explanation Section
           </button>
         </div>
 
         <div className="min-h-[300px]">
           {activeTab === 'contributors' && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Object.entries(data.top_contributors).map(([category, items]) => {
+              {Object.entries(data.all_contributors).map(([category, factors]) => {
                 const Icon = categoryIcons[category] || Activity;
+                // For Top Contributors, just show up to 5 supporting factors
+                const topSupporting = factors.supporting.slice(0, 5);
+                
                 return (
                   <div key={category} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
                     <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
                       <Icon className="w-5 h-5 text-indigo-500" />
                       <h3 className="font-bold text-slate-800">{category}</h3>
                     </div>
-                    {items.length > 0 ? (
+                    {topSupporting.length > 0 ? (
                       <div className="space-y-3">
-                        {items.map((item, idx) => (
+                        {topSupporting.map((item, idx) => (
                           <div key={idx} className="flex items-center justify-between text-sm">
                             <span className="text-slate-700 capitalize break-all mr-2">{item.ingredient}</span>
                             <div className="flex items-center gap-1.5 min-w-fit">
@@ -77,8 +89,73 @@ const XAISection = ({ data }) => {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-slate-500 italic">No significant contributors found.</p>
+                      <p className="text-sm text-slate-500 italic">No primary contributors found.</p>
                     )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {activeTab === 'all_contributors' && (
+            <div className="space-y-6">
+              {Object.entries(data.all_contributors).map(([category, factors]) => {
+                const Icon = categoryIcons[category] || Activity;
+                
+                return (
+                  <div key={`all-${category}`} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                     <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                      <div className="bg-indigo-50 p-2 rounded-lg">
+                        <Icon className="w-6 h-6 text-indigo-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-800">{category} Factors</h3>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Supporting Factors */}
+                      <div className="bg-emerald-50/50 rounded-xl p-4 border border-emerald-100">
+                        <div className="flex items-center gap-2 mb-3 text-emerald-700 font-semibold">
+                          <CheckCircle2 className="w-5 h-5" />
+                          <h4>Supporting {category} Status</h4>
+                        </div>
+                        {factors.supporting.length > 0 ? (
+                          <ul className="space-y-2">
+                             {factors.supporting.map((item, idx) => (
+                               <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-emerald-50">
+                                  <span className="capitalize text-slate-700">{item.ingredient}</span>
+                                  <span className="bg-emerald-100 text-emerald-700 font-medium px-2 py-0.5 rounded-md text-xs border border-emerald-200">
+                                     +{Math.round((item.score - 0.5) * 100)}% Match
+                                  </span>
+                               </li>
+                             ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-emerald-600/70 italic p-2">None found</p>
+                        )}
+                      </div>
+
+                      {/* Preventing Factors */}
+                      <div className="bg-rose-50/50 rounded-xl p-4 border border-rose-100">
+                        <div className="flex items-center gap-2 mb-3 text-rose-700 font-semibold">
+                          <XCircle className="w-5 h-5" />
+                          <h4>Preventing {category} Status</h4>
+                        </div>
+                        {factors.preventing.length > 0 ? (
+                          <ul className="space-y-2">
+                             {factors.preventing.map((item, idx) => (
+                               <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-rose-50">
+                                  <span className="capitalize text-slate-700">{item.ingredient}</span>
+                                  <span className="bg-rose-100 text-rose-700 font-medium px-2 py-0.5 rounded-md text-xs border border-rose-200">
+                                     -{Math.round((0.5 - item.score) * 100)}% Match
+                                  </span>
+                               </li>
+                             ))}
+                          </ul>
+                        ) : (
+                          <p className="text-sm text-rose-600/70 italic p-2">None found</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
