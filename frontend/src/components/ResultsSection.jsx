@@ -17,7 +17,7 @@ const ResultCard = ({ label, probability, isPresent, icon: Icon, color }) => {
                 </div>
             </div>
 
-            <div className="mt-4">
+            {/* <div className="mt-4">
                 <div className="flex justify-between text-xs mb-1 text-slate-500">
                     <span>Confidence</span>
                     <span>{(probability * 100).toFixed(1)}%</span>
@@ -30,7 +30,7 @@ const ResultCard = ({ label, probability, isPresent, icon: Icon, color }) => {
                         className={`h-full rounded-full ${isPresent ? color.replace('text-', 'bg-') : 'bg-slate-300'}`}
                     />
                 </div>
-            </div>
+            </div> */}
         </div>
     );
 };

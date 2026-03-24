@@ -13,6 +13,7 @@ function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [modelStatus, setModelStatus] = useState(null);
+  const [logoError, setLogoError] = useState(false);
 
   const [xaiData, setXaiData] = useState(null);
   const [isExplaining, setIsExplaining] = useState(false);
@@ -72,13 +73,24 @@ function App() {
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <Microscope className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-900 tracking-tight">IngreSense</h1>
-              <p className="text-xs text-slate-500 font-medium tracking-wide">COSMETIC COMPANION</p>
-            </div>
+            {!logoError ? (
+              <img
+                src="/logo.png"
+                alt="IngreSense Logo"
+                className="h-14 w-auto"
+                onError={() => setLogoError(true)}
+              />
+            ) : (
+              <>
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Microscope className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-slate-900 tracking-tight">IngreSense</h1>
+                  <p className="text-xs text-slate-500 font-medium tracking-wide">COSMETIC COMPANION</p>
+                </div>
+              </>
+            )}
           </div>
           {modelStatus && (
             <span className={`text-xs px-2 py-1 rounded-md border ${modelStatus === 'Active' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
@@ -122,10 +134,10 @@ function App() {
           <div className="space-y-8">
             <ResultsSection results={data.results} />
             {/* <ExplanationSection explanations={data.explanations} /> */}
-            
+
             {/* Detailed Analysis Button */}
             {!xaiData && (
-              <div className="flex justify-center mt-6">
+              <div className="flex justify-center mt-6 ">
                 <button
                   onClick={handleDetailedAnalysis}
                   disabled={isExplaining}
