@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Leaf, HeartPulse, Activity } from 'lucide-react';
+import { Sparkles, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Leaf, HeartPulse, Activity, CloudCog } from 'lucide-react';
 
 const categoryIcons = {
   'Halal': ShieldCheck,
@@ -68,7 +68,7 @@ const XAISection = ({ data }) => {
                 const Icon = categoryIcons[category] || Activity;
                 // For Top Contributors, just show up to 5 supporting factors
                 const topSupporting = factors.supporting.slice(0, 5);
-                
+
                 return (
                   <div key={category} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
                     <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-200">
@@ -101,10 +101,10 @@ const XAISection = ({ data }) => {
             <div className="space-y-6">
               {Object.entries(data.all_contributors).map(([category, factors]) => {
                 const Icon = categoryIcons[category] || Activity;
-                
+
                 return (
                   <div key={`all-${category}`} className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                     <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
                       <div className="bg-indigo-50 p-2 rounded-lg">
                         <Icon className="w-6 h-6 text-indigo-600" />
                       </div>
@@ -120,14 +120,14 @@ const XAISection = ({ data }) => {
                         </div>
                         {factors.supporting.length > 0 ? (
                           <ul className="space-y-2">
-                             {factors.supporting.map((item, idx) => (
-                               <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-emerald-50">
-                                  <span className="capitalize text-slate-700">{item.ingredient}</span>
-                                  <span className="bg-emerald-100 text-emerald-700 font-medium px-2 py-0.5 rounded-md text-xs border border-emerald-200">
-                                     +{Math.round((item.score - 0.5) * 100)}% Match
-                                  </span>
-                               </li>
-                             ))}
+                            {factors.supporting.map((item, idx) => (
+                              <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-emerald-50">
+                                <span className="capitalize text-slate-700">{item.ingredient}</span>
+                                {/* <span className="bg-emerald-100 text-emerald-700 font-medium px-2 py-0.5 rounded-md text-xs border border-emerald-200">
+                                  +{Math.round((item.score) * 100)}% Match
+                                </span> */}
+                              </li>
+                            ))}
                           </ul>
                         ) : (
                           <p className="text-sm text-emerald-600/70 italic p-2">None found</p>
@@ -142,14 +142,14 @@ const XAISection = ({ data }) => {
                         </div>
                         {factors.preventing.length > 0 ? (
                           <ul className="space-y-2">
-                             {factors.preventing.map((item, idx) => (
-                               <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-rose-50">
-                                  <span className="capitalize text-slate-700">{item.ingredient}</span>
-                                  <span className="bg-rose-100 text-rose-700 font-medium px-2 py-0.5 rounded-md text-xs border border-rose-200">
-                                     -{Math.round((0.5 - item.score) * 100)}% Match
-                                  </span>
-                               </li>
-                             ))}
+                            {factors.preventing.map((item, idx) => (
+                              <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-rose-50">
+                                <span className="capitalize text-slate-700">{item.ingredient}</span>
+                                {/* <span className="bg-rose-100 text-rose-700 font-medium px-2 py-0.5 rounded-md text-xs border border-rose-200">
+                                  -{Math.round((item.score) * 100)}% Match
+                                </span> */}
+                              </li>
+                            ))}
                           </ul>
                         ) : (
                           <p className="text-sm text-rose-600/70 italic p-2">None found</p>
@@ -175,39 +175,50 @@ const XAISection = ({ data }) => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-slate-100">
-                    {data.kg_evidence.map((ev, idx) => {
-                      // Determine status based on scores from python response
+                    {data.ingredient_reasoning && Object.entries(data.ingredient_reasoning).map(([ingredient, labels], idx) => {
                       let statusText = "Safe";
                       let statusColor = "bg-emerald-100 text-emerald-700";
                       let StatusIcon = CheckCircle2;
 
-                      const s = ev.scores;
-                      if (s.halal < 0.5 || s.vegan < 0.5 || s.allergen > 0.5) {
-                        const issues = [];
-                        if (s.halal < 0.5) issues.push("Not Halal");
-                        if (s.vegan < 0.5) issues.push("Not Vegan");
-                        if (s.allergen > 0.5) issues.push("Allergen");
+                      const issues = [];
+                      if (labels['Halal']?.impact_raw?.includes('negatively') || labels['Halal']?.impact === 'preventing') issues.push("Not Halal");
+                      if (labels['Vegan']?.impact_raw?.includes('negatively') || labels['Vegan']?.impact === 'preventing') issues.push("Not Vegan");
+                      if (labels['Allergen-Safe']?.impact_raw?.includes('negatively') || labels['Allergen-Safe']?.impact === 'preventing') issues.push("Allergen");
+                      if (labels['Eco-Friendly']?.impact_raw?.includes('negatively') || labels['Eco-Friendly']?.impact === 'preventing') issues.push("Not Eco");
+
+                      if (issues.length > 0) {
                         statusText = issues.join(", ");
                         statusColor = "bg-rose-100 text-rose-700";
                         StatusIcon = AlertTriangle;
                       }
 
+                      const source = labels['Halal']?.source || 'unknown';
+                      const attn = labels['Halal']?.attention_weight || 0;
+
                       return (
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
-                            {ev.ingredient}
+                            {ingredient}
+                            {/* <div className="text-xs text-slate-500 font-normal mt-0.5">Model Attention: {attn.toFixed(1)}%</div> */}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${statusColor}`}>
-                              <StatusIcon className="w-3.5 h-3.5" />
-                              {statusText}
+                          <td className="px-6 py-4 text-sm max-w-[150px]">
+                            <span className={`inline-flex flex-wrap items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium ${statusColor}`}>
+                              <StatusIcon className="w-3.5 h-3.5 flex-shrink-0" />
+                              <span className="leading-tight">{statusText}</span>
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600 capitalize">
-                            {ev.source}
+                            {source}
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600 leading-relaxed max-w-md">
-                            {ev.reasoning}
+                            <div className="space-y-3">
+                              {Object.entries(labels).map(([l, d]) => (
+                                <div key={l} className="flex flex-col gap-1 text-xs">
+                                  <span className="font-bold text-slate-800">{l}:</span>
+                                  <span className="text-slate-600">{d.reasoning}</span>
+                                </div>
+                              ))}
+                            </div>
                           </td>
                         </tr>
                       );

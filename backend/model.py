@@ -184,11 +184,12 @@ class HybridCosmeticClassifier(nn.Module):
         self.text_attention = nn.Linear(self.transformer_dim, 1)
         self.kg_attention = nn.Linear(256, 1)
 
-    def forward(self, input_ids, attention_mask, kg_features):
+    def forward(self, input_ids, attention_mask, kg_features, return_explanations=False):
         # Encode text
         transformer_output = self.transformer(
             input_ids=input_ids,
-            attention_mask=attention_mask
+            attention_mask=attention_mask,
+            output_attentions=return_explanations
         )
         text_embedding = transformer_output.last_hidden_state[:, 0, :]  # [CLS]
 
@@ -200,7 +201,7 @@ class HybridCosmeticClassifier(nn.Module):
         kg_projected = self.kg_projection(kg_embedding)
         kg_proj_unsqueezed = kg_projected.unsqueeze(1)
 
-        attended_features, _ = self.fusion_attention(
+        attended_features, fusion_attention_weights = self.fusion_attention(
             text_unsqueezed, kg_proj_unsqueezed, kg_proj_unsqueezed
         )
         attended_features = attended_features.squeeze(1)
@@ -222,4 +223,16 @@ class HybridCosmeticClassifier(nn.Module):
 
         # Classify
         logits = self.classifier(fused)
+        
+        if return_explanations:
+            explanations = {
+                'text_weight': text_weight.detach(),
+                'kg_weight': kg_weight.detach(),
+                'fusion_attention': fusion_attention_weights.detach(),
+                'bert_attentions': transformer_output.attentions,
+                'kg_features': kg_features.detach(),
+                'kg_embedding': kg_embedding.detach()
+            }
+            return logits, explanations
+
         return logits

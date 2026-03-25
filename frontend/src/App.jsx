@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import InputSection from './components/InputSection';
 import ResultsSection from './components/ResultsSection';
-import ExplanationSection from './components/ExplanationSection';
+// import ExplanationSection from './components/ExplanationSection';
 import XAISection from './components/XAISection';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Microscope, Info, Sparkles } from 'lucide-react';
@@ -35,7 +35,7 @@ function App() {
       console.log(`[Analysis] Source: ${response.data.model_status}`);
     } catch (err) {
       console.error(err);
-      setError("Failed to analyze ingredients. Please check if the backend is running.");
+      setError(err.response?.data?.detail || "Failed to analyze ingredients. Please check if the backend is running.");
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +54,7 @@ function App() {
       setXaiData(response.data);
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch detailed analysis. Please check the backend.");
+      setError(err.response?.data?.detail || "Failed to fetch detailed analysis. Please check the backend.");
     } finally {
       setIsExplaining(false);
     }
@@ -132,7 +132,7 @@ function App() {
         {/* Results */}
         {data && (
           <div className="space-y-8">
-            <ResultsSection results={data.results} />
+            <ResultsSection results={data.results} xaiData={xaiData} />
             {/* <ExplanationSection explanations={data.explanations} /> */}
 
             {/* Detailed Analysis Button */}
