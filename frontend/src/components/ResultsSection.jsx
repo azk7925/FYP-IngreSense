@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, AlertTriangle, Leaf, Heart } from 'lucide-react';
+import { CheckCircle, Leaf, Heart } from 'lucide-react';
 
 const ResultCard = ({ label, probability, isPresent, icon: Icon, color, xaiReasoning }) => {
     return (
@@ -28,28 +28,11 @@ const ResultCard = ({ label, probability, isPresent, icon: Icon, color, xaiReaso
                     </p>}
                 </motion.div>
             )}
-
-            {/* <div className="mt-4">
-                <div className="flex justify-between text-xs mb-1 text-slate-500">
-                    <span>Confidence</span>
-                    <span>{(probability * 100).toFixed(1)}%</span>
-                </div>
-                <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${probability * 100}%` }}
-                        transition={{ duration: 1, ease: "easeOut" }}
-                        className={`h-full rounded-full ${isPresent ? color.replace('text-', 'bg-') : 'bg-slate-300'}`}
-                    />
-                </div>
-            </div> */}
         </div>
     );
 };
 
 const ResultsSection = ({ results, xaiData }) => {
-    // Map backend labels to UI config
-    // Backend: Halal, Vegan, Contains Allergens, Eco-Friendly
     const getIcon = (label) => {
         if (label.includes('Halal')) return CheckCircle;
         if (label.includes('Vegan')) return Heart;

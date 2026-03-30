@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import InputSection from './components/InputSection';
 import ResultsSection from './components/ResultsSection';
-// import ExplanationSection from './components/ExplanationSection';
 import XAISection from './components/XAISection';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Microscope, Info, Sparkles } from 'lucide-react';
@@ -133,7 +132,6 @@ function App() {
         {data && (
           <div className="space-y-8">
             <ResultsSection results={data.results} xaiData={xaiData} />
-            {/* <ExplanationSection explanations={data.explanations} /> */}
 
             {/* Detailed Analysis Button */}
             {!xaiData && (

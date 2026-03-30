@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Sparkles, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Leaf, HeartPulse, Activity, CloudCog } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, CheckCircle2, XCircle, AlertTriangle, ShieldCheck, Leaf, HeartPulse, Activity } from 'lucide-react';
 
 const categoryIcons = {
   'Halal': ShieldCheck,
@@ -26,7 +26,6 @@ const XAISection = ({ data }) => {
           </div>
           <div>
             <h2 className="text-2xl font-bold text-slate-900">INGRESENSE Deep Analysis</h2>
-            {/* <p className="text-sm text-slate-500 font-medium">Model Confidence: <span className="text-indigo-600 capitalize">{data.confidence_level}</span></p> */}
           </div>
         </div>
 
@@ -123,9 +122,6 @@ const XAISection = ({ data }) => {
                             {factors.supporting.map((item, idx) => (
                               <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-emerald-50">
                                 <span className="capitalize text-slate-700">{item.ingredient}</span>
-                                {/* <span className="bg-emerald-100 text-emerald-700 font-medium px-2 py-0.5 rounded-md text-xs border border-emerald-200">
-                                  +{Math.round((item.score) * 100)}% Match
-                                </span> */}
                               </li>
                             ))}
                           </ul>
@@ -145,9 +141,6 @@ const XAISection = ({ data }) => {
                             {factors.preventing.map((item, idx) => (
                               <li key={idx} className="flex items-center justify-between text-sm bg-white p-2 rounded-lg border border-rose-50">
                                 <span className="capitalize text-slate-700">{item.ingredient}</span>
-                                {/* <span className="bg-rose-100 text-rose-700 font-medium px-2 py-0.5 rounded-md text-xs border border-rose-200">
-                                  -{Math.round((item.score) * 100)}% Match
-                                </span> */}
                               </li>
                             ))}
                           </ul>
@@ -199,7 +192,6 @@ const XAISection = ({ data }) => {
                         <tr key={idx} className="hover:bg-slate-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
                             {ingredient}
-                            {/* <div className="text-xs text-slate-500 font-normal mt-0.5">Model Attention: {attn.toFixed(1)}%</div> */}
                           </td>
                           <td className="px-6 py-4 text-sm max-w-[150px]">
                             <span className={`inline-flex flex-wrap items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-medium ${statusColor}`}>
@@ -238,7 +230,6 @@ const XAISection = ({ data }) => {
                       <thead className="bg-amber-50/50">
                         <tr>
                           <th scope="col" className="px-4 py-2.5 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">Name</th>
-                          {/* <th scope="col" className="px-4 py-2.5 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">Status</th> */}
                           <th scope="col" className="px-4 py-2.5 text-left text-xs font-semibold text-amber-800 uppercase tracking-wider">Reason</th>
                         </tr>
                       </thead>
@@ -246,11 +237,6 @@ const XAISection = ({ data }) => {
                         {data.ambiguous_ingredients.map((amb, idx) => (
                           <tr key={idx} className="hover:bg-amber-50/30">
                             <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">{amb.ingredient}</td>
-                            {/* <td className="px-4 py-3 whitespace-nowrap text-sm">
-                                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
-                                    Unknown
-                                 </span>
-                              </td> */}
                             <td className="px-4 py-3 text-sm text-amber-700">{amb.reason}</td>
                           </tr>
                         ))}
